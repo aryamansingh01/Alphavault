@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: alphavault
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn dev_server:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: FMP_API_KEY
+        sync: false
+      - key: FINNHUB_API_KEY
+        sync: false
+      - key: FRED_API_KEY
+        sync: false
+      - key: ALPHA_VANTAGE_KEY
+        sync: false

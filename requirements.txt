@@ -1,0 +1,12 @@
+# AlphaVault — Python Dependencies
+requests>=2.31
+yfinance>=0.2.37
+pandas>=2.1
+numpy>=1.26
+python-dateutil>=2.9
+python-dotenv>=1.0
+gunicorn>=22.0
+flask>=3.0
+statsmodels>=0.14
+scikit-learn>=1.4
+pandas-datareader>=0.10

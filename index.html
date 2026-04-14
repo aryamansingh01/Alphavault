@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlphaVault — Portfolio Intelligence</title>
+  <meta name="description" content="Institutional-grade portfolio analytics dashboard" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- jsPDF + html2canvas for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+
+  <!-- ============================================================
+       HEADER
+  ============================================================ -->
+  <header class="app-header" id="appHeader">
+
+    <!-- Logo -->
+    <div class="header-logo">
+      <div class="logo-dot" id="liveDot"></div>
+      <span class="logo-text">ALPHA<span>VAULT</span></span>
+    </div>
+
+    <!-- Center Stats -->
+    <div class="header-stats" id="headerStats">
+      <div class="header-stat">
+        <span class="header-stat-label">Portfolio NAV</span>
+        <span class="header-stat-value mono" id="hNavValue">—</span>
+      </div>
+      <div class="header-stat">
+        <span class="header-stat-label">Day P&amp;L</span>
+        <span class="header-stat-value mono" id="hDayPnl">—</span>
+      </div>
+      <div class="header-stat">
+        <span class="header-stat-label">Portfolio Beta</span>
+        <span class="header-stat-value mono" id="hBeta">—</span>
+      </div>
+      <div class="header-stat">
+        <span class="header-stat-label">Sharpe Ratio</span>
+        <span class="header-stat-value mono" id="hSharpe">—</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="header-controls">
+      <span class="header-clock" id="liveClock">00:00:00</span>
+
+      <!-- Dark/Light Toggle -->
+      <button class="icon-btn" id="themeToggle" title="Toggle light/dark mode" aria-label="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+
+      <!-- Export PDF -->
+      <button class="btn-export" id="exportPdfBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+        </svg>
+        <span>Export PDF</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       SIDEBAR
+  ============================================================ -->
+  <nav class="app-sidebar" id="appSidebar">
+    <div class="nav-item active" data-tab="portfolio">
+      <span class="nav-icon">◈</span>
+      <span class="nav-label">Portfolio</span>
+    </div>
+    <div class="nav-item" data-tab="exposure">
+      <span class="nav-icon">◎</span>
+      <span class="nav-label">Exposure</span>
+    </div>
+    <div class="nav-item" data-tab="research">
+      <span class="nav-icon">⌕</span>
+      <span class="nav-label">Research</span>
+    </div>
+    <div class="nav-item" data-tab="risk">
+      <span class="nav-icon">△</span>
+      <span class="nav-label">Risk</span>
+    </div>
+    <div class="sidebar-section-divider"></div>
+    <div class="nav-item" data-tab="macro">
+      <span class="nav-icon">⊞</span>
+      <span class="nav-label">Macro</span>
+    </div>
+    <div class="nav-item" data-tab="simulate">
+      <span class="nav-icon">∿</span>
+      <span class="nav-label">Simulate</span>
+    </div>
+    <div class="nav-item" data-tab="compare">
+      <span class="nav-icon">⇄</span>
+      <span class="nav-label">Compare</span>
+    </div>
+    <div class="nav-item" data-tab="options">
+      <span class="nav-icon">⊘</span>
+      <span class="nav-label">Options</span>
+    </div>
+    <div class="sidebar-section-divider"></div>
+    <div class="nav-item" data-tab="watchlist">
+      <span class="nav-icon">◷</span>
+      <span class="nav-label">Watchlist</span>
+    </div>
+    <div class="sidebar-section-divider"></div>
+    <div class="nav-item" data-tab="technical">
+      <span class="nav-icon">≋</span>
+      <span class="nav-label">Technical</span>
+    </div>
+    <div class="nav-item" data-tab="factors">
+      <span class="nav-icon">⊛</span>
+      <span class="nav-label">Factors</span>
+    </div>
+    <div class="nav-item" data-tab="attribution">
+      <span class="nav-icon">⊕</span>
+      <span class="nav-label">Attribution</span>
+    </div>
+    <div class="nav-item" data-tab="regime">
+      <span class="nav-icon">◐</span>
+      <span class="nav-label">Regime</span>
+    </div>
+    <div class="sidebar-section-divider"></div>
+    <div class="nav-item" data-tab="nervemap">
+      <span class="nav-icon">⚡</span>
+      <span class="nav-label">Market Intel</span>
+    </div>
+    <div class="nav-item" data-tab="screener">
+      <span class="nav-icon">⊞</span>
+      <span class="nav-label">Screener</span>
+    </div>
+    <div class="nav-item" data-tab="earnings">
+      <span class="nav-icon">⊡</span>
+      <span class="nav-label">Earnings</span>
+    </div>
+    <div class="nav-item" data-tab="bonds">
+      <span class="nav-icon">⌘</span>
+      <span class="nav-label">Bonds</span>
+    </div>
+    <div class="sidebar-section-divider"></div>
+    <div class="nav-item" data-tab="rebalance">
+      <span class="nav-icon">⇌</span>
+      <span class="nav-label">Rebalance</span>
+    </div>
+    <div class="nav-item" data-tab="pairs">
+      <span class="nav-icon">⫘</span>
+      <span class="nav-label">Pairs</span>
+    </div>
+    <div class="nav-item" data-tab="backtest">
+      <span class="nav-icon">◁</span>
+      <span class="nav-label">Backtest</span>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       MAIN CONTENT
+  ============================================================ -->
+  <main class="app-main" id="appMain">
+
+    <!-- ========================================================
+         TAB 1: PORTFOLIO
+    ========================================================= -->
+    <section class="tab-page active" id="tab-portfolio">
+
+      <!-- Top Stats Row -->
+      <div class="stat-grid" id="portfolioStats">
+        <div class="stat-box">
+          <div class="stat-label">Total NAV</div>
+          <div class="stat-value mono" id="statNav">$0.00</div>
+          <div class="stat-sub" id="statNavSub">0 positions</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Total Return</div>
+          <div class="stat-value mono" id="statReturn">$0.00</div>
+          <div class="stat-sub" id="statReturnPct">0.00%</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Positions</div>
+          <div class="stat-value mono" id="statPositions">0</div>
+          <div class="stat-sub" id="statPositionsSub">Stocks / ETFs / Crypto</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Cash Available</div>
+          <div class="stat-value mono" id="statCash">$0.00</div>
+          <div class="stat-sub">Not invested</div>
+        </div>
+      </div>
+
+      <!-- Main Layout: Build Panel + Donut -->
+      <div class="layout-sidebar-main mb-4">
+
+        <!-- LEFT: Portfolio Builder -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Quick Build</span>
+            <label class="card-action" for="csvUpload">↑ Import CSV</label>
+            <input type="file" id="csvUpload" accept=".csv" class="hidden" />
+          </div>
+
+          <!-- Preset Templates -->
+          <div class="preset-chips" id="presetChips">
+            <button class="preset-chip" data-preset="sp500core">S&amp;P Core</button>
+            <button class="preset-chip" data-preset="techheavy">Tech Heavy</button>
+            <button class="preset-chip" data-preset="dividend">Dividend Focus</button>
+            <button class="preset-chip" data-preset="crypto">Crypto Mix</button>
+            <button class="preset-chip" data-preset="bogleheads">Bogleheads 3-Fund</button>
+          </div>
+
+          <!-- Add Position Form -->
+          <div class="form-row mb-3" id="addPositionForm">
+            <div class="form-group" style="flex:2">
+              <label class="form-label">Ticker</label>
+              <input type="text" class="form-input mono" id="inputTicker" placeholder="AAPL" maxlength="10" />
+            </div>
+            <div class="form-group" style="flex:1.5">
+              <label class="form-label">Shares</label>
+              <input type="number" class="form-input mono" id="inputShares" placeholder="100" min="0" step="0.001" />
+            </div>
+            <div class="form-group" style="flex:1.5">
+              <label class="form-label">Avg Cost</label>
+              <input type="number" class="form-input mono" id="inputAvgCost" placeholder="0.00" min="0" step="0.01" />
+            </div>
+            <div class="form-group" style="flex:0 0 auto; justify-content:flex-end;">
+              <label class="form-label">&nbsp;</label>
+              <button class="btn btn-primary" id="addPositionBtn">+ Add</button>
+            </div>
+          </div>
+
+          <!-- Positions List -->
+          <div id="positionsList">
+            <div class="empty-state" id="positionsEmpty">
+              <div class="empty-state-icon">◈</div>
+              <div class="empty-state-title">No positions yet</div>
+              <div class="empty-state-msg">Add a ticker above or choose a preset template to get started</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Allocation Donut -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Allocation</span>
+            <span class="card-action" id="toggleDonutView">By Value</span>
+          </div>
+          <div class="chart-wrap" style="height:260px; position:relative;">
+            <canvas id="allocationDonut"></canvas>
+            <div class="chart-empty hidden" id="donutEmpty">
+              <div class="chart-empty-icon">◎</div>
+              <span>Add positions to see allocation</span>
+            </div>
+          </div>
+          <!-- Donut Legend -->
+          <div id="donutLegend" class="mt-3" style="max-height:140px;overflow-y:auto;"></div>
+        </div>
+      </div>
+
+      <!-- Holdings Table -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">Holdings</span>
+          <div class="flex gap-2">
+            <span class="text-xs text-muted" id="lastUpdated">—</span>
+            <span class="card-action" id="refreshQuotesBtn">↻ Refresh Quotes</span>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="holdingsTable">
+            <thead>
+              <tr>
+                <th data-sort="ticker">Ticker <span class="sort-arrow">↕</span></th>
+                <th data-sort="name">Name</th>
+                <th>Type</th>
+                <th data-sort="shares">Shares <span class="sort-arrow">↕</span></th>
+                <th data-sort="avgCost">Avg Cost <span class="sort-arrow">↕</span></th>
+                <th data-sort="price">Live Price <span class="sort-arrow">↕</span></th>
+                <th data-sort="value">Market Value <span class="sort-arrow">↕</span></th>
+                <th data-sort="pnl">Unreal. P&amp;L $ <span class="sort-arrow">↕</span></th>
+                <th data-sort="pnlPct">Unreal. P&amp;L % <span class="sort-arrow">↕</span></th>
+                <th data-sort="dayChange">Day Change <span class="sort-arrow">↕</span></th>
+                <th data-sort="weight">Weight % <span class="sort-arrow">↕</span></th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="holdingsBody">
+              <tr><td colspan="12">
+                <div class="empty-state">
+                  <div class="empty-state-icon">◈</div>
+                  <div class="empty-state-title">Portfolio is empty</div>
+                  <div class="empty-state-msg">Add positions using the Quick Build panel above</div>
+                </div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Portfolio Grade Card -->
+      <div class="card" id="gradeCard">
+        <div class="card-header">
+          <span class="card-title">Portfolio Health Score</span>
+          <span class="card-action" id="gradeInfoBtn" data-tooltip="Score is calculated from diversification, concentration, sector balance, geographic spread, and volatility level">ⓘ How is this calculated?</span>
+        </div>
+        <div class="grade-display" id="gradeDisplay">
+          <div class="grade-letter" id="gradeLetter">—</div>
+          <div class="grade-subscores" id="gradeSubscores">
+            <div class="empty-state" style="padding:16px 0;">
+              <div class="empty-state-msg">Add positions to generate your portfolio health score</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 2: EXPOSURE
+    ========================================================= -->
+    <section class="tab-page" id="tab-exposure">
+
+      <!-- Three Donuts Row -->
+      <div class="grid-3 mb-4">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Sector Breakdown</span></div>
+          <div class="chart-wrap" style="height:200px;"><canvas id="sectorDonut"></canvas></div>
+          <div id="sectorLegend" class="mt-2"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Geographic Breakdown</span></div>
+          <div class="chart-wrap" style="height:200px;"><canvas id="geoDonut"></canvas></div>
+          <div id="geoLegend" class="mt-2"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Market Cap Breakdown</span></div>
+          <div class="chart-wrap" style="height:200px;"><canvas id="capDonut"></canvas></div>
+          <div id="capLegend" class="mt-2"></div>
+        </div>
+      </div>
+
+      <!-- ETF Look-Through Panel -->
+      <div class="card mb-4" id="etfLookThroughCard">
+        <div class="card-header">
+          <span class="card-title">ETF Look-Through</span>
+          <div class="flex gap-2">
+            <button class="inner-tab active" id="toggleStated" onclick="toggleExposureView('stated')">Stated</button>
+            <button class="inner-tab" id="toggleTrue" onclick="toggleExposureView('true')">True Exposure</button>
+          </div>
+        </div>
+        <div id="etfLookThroughContent">
+          <div class="empty-state">
+            <div class="empty-state-icon">◎</div>
+            <div class="empty-state-title">No ETFs in portfolio</div>
+            <div class="empty-state-msg">Add ETFs (e.g. SPY, QQQ, VTI) to see look-through holdings</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ETF Overlap Heatmap -->
+      <div class="card mb-4" id="overlapCard">
+        <div class="card-header">
+          <span class="card-title">ETF Overlap Heatmap</span>
+          <span class="card-action" data-tooltip="Shows % overlap in top 10 holdings between each ETF pair. High overlap = redundant exposure.">ⓘ Info</span>
+        </div>
+        <div id="overlapContent">
+          <div class="empty-state">
+            <div class="empty-state-icon">⊞</div>
+            <div class="empty-state-title">Add 2+ ETFs to see overlap</div>
+            <div class="empty-state-msg">The heatmap shows shared holdings between your ETFs</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rebalance Suggester -->
+      <div class="card" id="rebalanceCard">
+        <div class="card-header">
+          <span class="card-title">Rebalance Suggester</span>
+          <button class="btn btn-sm btn-primary" id="applyRebalanceBtn">Apply Rebalance</button>
+        </div>
+        <div id="rebalanceContent">
+          <div class="empty-state">
+            <div class="empty-state-icon">⇄</div>
+            <div class="empty-state-title">Set target allocations</div>
+            <div class="empty-state-msg">Add positions first, then set your target weights below to see rebalancing trades</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 3: RESEARCH
+    ========================================================= -->
+    <section class="tab-page" id="tab-research">
+
+      <!-- Search Bar -->
+      <div class="search-bar-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" class="search-input" id="researchSearch" placeholder="Search any ticker — AAPL, TSLA, BTC-USD, QQQ..." />
+      </div>
+
+      <!-- Company Header Strip -->
+      <div class="company-strip hidden" id="companyStrip">
+        <div class="company-logo" id="companyLogoInitial">—</div>
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="company-name" id="companyName">—</span>
+            <span class="company-ticker" id="companyTicker">—</span>
+          </div>
+          <div class="text-xs text-muted" id="companySector">—</div>
+        </div>
+        <div class="company-meta">
+          <div class="company-meta-item">
+            <span class="company-meta-label">Market Cap</span>
+            <span class="company-meta-value mono" id="companyMktCap">—</span>
+          </div>
+          <div class="company-meta-item">
+            <span class="company-meta-label">Live Price</span>
+            <span class="company-meta-value mono" id="companyPrice">—</span>
+          </div>
+          <div class="company-meta-item">
+            <span class="company-meta-label">Day Change</span>
+            <span class="company-meta-value mono" id="companyDayChange">—</span>
+          </div>
+          <div class="week-range-bar company-meta-item">
+            <span class="company-meta-label">52-Week Range</span>
+            <div class="week-range-track mt-2">
+              <div class="week-range-fill" id="weekRangeFill" style="width:100%"></div>
+              <div class="week-range-dot" id="weekRangeDot" style="left:50%"></div>
+            </div>
+            <div class="flex justify-between mt-1">
+              <span class="text-xs text-muted" id="week52Low">—</span>
+              <span class="text-xs text-muted" id="week52High">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Research placeholder -->
+      <div id="researchPlaceholder">
+        <div class="empty-state" style="padding:80px 20px;">
+          <div class="empty-state-icon" style="font-size:48px;">⌕</div>
+          <div class="empty-state-title">Search for any stock, ETF, or crypto</div>
+          <div class="empty-state-msg">Type a ticker and press Enter to load full research data</div>
+        </div>
+      </div>
+
+      <!-- Research Inner Tabs -->
+      <div id="researchContent" class="hidden">
+        <div class="inner-tabs">
+          <button class="inner-tab active" data-inner-tab="valuation">Valuation</button>
+          <button class="inner-tab" data-inner-tab="insider">Insider Activity</button>
+          <button class="inner-tab" data-inner-tab="analyst">Analyst Ratings</button>
+          <button class="inner-tab" data-inner-tab="rNews">News</button>
+        </div>
+
+        <!-- Valuation Panel -->
+        <div class="inner-tab-panel active" id="panel-valuation">
+          <div class="metric-grid" id="valuationMetrics"></div>
+          <div class="card mt-3">
+            <div class="card-header"><span class="card-title">Metric Comparison vs Sector &amp; S&amp;P 500</span></div>
+            <div class="chart-wrap" style="height:260px;"><canvas id="valuationCompareChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Insider Activity Panel -->
+        <div class="inner-tab-panel" id="panel-insider">
+          <div class="insider-summary-bar" id="insiderSummary">
+            <span class="text-xs text-muted">Last 90 days —</span>
+            <span class="insider-buy" id="insiderBuys">0 Buys ($0)</span>
+            <span class="text-muted">vs</span>
+            <span class="insider-sell" id="insiderSells">0 Sells ($0)</span>
+            <span class="badge" id="insiderSentimentBadge">—</span>
+          </div>
+          <div class="card">
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Executive</th><th>Title</th>
+                    <th>Transaction</th><th>Shares</th><th>Value</th>
+                  </tr>
+                </thead>
+                <tbody id="insiderBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analyst Ratings Panel -->
+        <div class="inner-tab-panel" id="panel-analyst">
+          <div class="grid-2 mb-3">
+            <div class="card">
+              <div class="card-header"><span class="card-title">Consensus</span></div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="badge badge-buy" id="consensusBadge" style="font-size:14px;padding:6px 18px;">—</span>
+              </div>
+              <div class="ratings-stacked-bar" id="ratingsBar"></div>
+              <div class="flex justify-between text-xs text-muted mt-1">
+                <span>Strong Buy</span><span>Buy</span><span>Hold</span><span>Sell</span><span>Strong Sell</span>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">Price Target Range</span></div>
+              <div class="pt-range-track" id="ptRangeTrack">
+                <div class="pt-range-fill" id="ptRangeFill" style="left:10%;width:80%"></div>
+                <div class="pt-marker low"     id="ptLow"     style="left:10%" data-tooltip="Low Target"></div>
+                <div class="pt-marker avg"     id="ptAvg"     style="left:50%" data-tooltip="Average Target"></div>
+                <div class="pt-marker high"    id="ptHigh"    style="left:90%" data-tooltip="High Target"></div>
+                <div class="pt-marker current" id="ptCurrent" style="left:45%" data-tooltip="Current Price"></div>
+              </div>
+              <div class="flex justify-between text-xs mt-2">
+                <span class="text-red">Low: <span class="mono" id="ptLowVal">—</span></span>
+                <span class="text-amber">Avg: <span class="mono" id="ptAvgVal">—</span></span>
+                <span class="text-green">High: <span class="mono" id="ptHighVal">—</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Recent Rating Changes</span></div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr><th>Date</th><th>Firm</th><th>From</th><th>To</th><th>Price Target</th></tr>
+                </thead>
+                <tbody id="analystBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- News Panel -->
+        <div class="inner-tab-panel" id="panel-rNews">
+          <div class="card">
+            <div id="newsFeed"></div>
+          </div>
+        </div>
+
+      </div><!-- /researchContent -->
+
+    </section>
+
+    <!-- ========================================================
+         TAB 4: RISK
+    ========================================================= -->
+    <section class="tab-page" id="tab-risk">
+
+      <div class="grid-2 mb-4">
+
+        <!-- Risk Score Gauge -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Portfolio Risk Score</span>
+            <span class="card-action" data-tooltip="Composite score 0–100 based on beta, concentration, sector diversity, crypto exposure, and volatility">ⓘ Info</span>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-canvas-wrap">
+              <canvas id="riskGauge" width="220" height="120"></canvas>
+              <div class="gauge-value">
+                <div class="gauge-number" id="gaugeNumber">—</div>
+                <div class="gauge-label" id="gaugeLabel">—</div>
+              </div>
+            </div>
+          </div>
+          <!-- Risk Factor Breakdown -->
+          <div id="riskFactors" class="mt-3">
+            <div class="empty-state" style="padding:12px 0;">
+              <div class="empty-state-msg">Add positions to calculate risk score</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Portfolio Analytics -->
+        <div class="card" id="analyticsCard">
+          <div class="card-header">
+            <span class="card-title">Portfolio Analytics</span>
+            <button class="btn btn-sm btn-secondary" id="runAnalyticsBtn">Run Analysis</button>
+          </div>
+          <div id="analyticsContent">
+            <div class="empty-state">
+              <div class="empty-state-icon">△</div>
+              <div class="empty-state-title">Run Analysis</div>
+              <div class="empty-state-msg">Click "Run Analysis" to calculate Beta, Alpha, Sharpe, Sortino, VaR, CVaR and more</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Correlation Matrix -->
+      <div class="card mb-4" id="correlationCard">
+        <div class="card-header">
+          <span class="card-title">Correlation Matrix</span>
+          <button class="btn btn-sm btn-secondary" id="runCorrelationBtn">Calculate</button>
+        </div>
+        <div id="correlationContent">
+          <div class="empty-state">
+            <div class="empty-state-icon">⊞</div>
+            <div class="empty-state-title">Pearson Correlation Matrix</div>
+            <div class="empty-state-msg">Calculates 1-year daily return correlations between all holdings</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drawdown Chart -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">Max Drawdown by Position</span>
+          <button class="btn btn-sm btn-secondary" id="runDrawdownBtn">Calculate</button>
+        </div>
+        <div id="drawdownContent">
+          <div class="chart-wrap" style="height:280px;"><canvas id="drawdownChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Dividend Tracker -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">Dividend Tracker</span>
+          <button class="btn btn-sm btn-secondary" id="runDividendsBtn">Load Dividends</button>
+        </div>
+        <div id="dividendContent">
+          <div class="empty-state">
+            <div class="empty-state-icon">◷</div>
+            <div class="empty-state-title">Dividend Income Analysis</div>
+            <div class="empty-state-msg">Shows annual DPS, yield, growth rate, and projected income per position</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Efficient Frontier -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Efficient Frontier</span>
+          <button class="btn btn-sm btn-secondary" id="runFrontierBtn">Run Optimization</button>
+        </div>
+        <div id="frontierContent">
+          <div class="chart-wrap" style="height:340px;"><canvas id="frontierChart"></canvas></div>
+          <div class="ef-legend" id="efLegend"></div>
+          <div id="frontierSuggestion" class="macro-summary-box hidden mt-3"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 5: MACRO
+    ========================================================= -->
+    <section class="tab-page" id="tab-macro">
+
+      <div class="flex justify-between items-center mb-4">
+        <div class="page-title"><span class="page-title-icon">⊞</span> Macro Dashboard</div>
+        <button class="btn btn-sm btn-secondary" id="refreshMacroBtn">↻ Refresh</button>
+      </div>
+
+      <!-- 13 Indicator Cards -->
+      <div class="macro-grid" id="macroGrid">
+        <!-- Fed Funds Rate -->
+        <div class="macro-card skeleton-loading" id="macro-FEDFUNDS">
+          <div class="macro-name">Fed Funds Rate</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-FEDFUNDS"></canvas>
+        </div>
+        <!-- CPI -->
+        <div class="macro-card skeleton-loading" id="macro-CPI">
+          <div class="macro-name">CPI (YoY)</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-CPI"></canvas>
+        </div>
+        <!-- Unemployment -->
+        <div class="macro-card skeleton-loading" id="macro-UNRATE">
+          <div class="macro-name">Unemployment Rate</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-UNRATE"></canvas>
+        </div>
+        <!-- GDP -->
+        <div class="macro-card skeleton-loading" id="macro-GDP">
+          <div class="macro-name">GDP Growth (QoQ)</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-GDP"></canvas>
+        </div>
+        <!-- M2 -->
+        <div class="macro-card skeleton-loading" id="macro-M2SL">
+          <div class="macro-name">M2 Money Supply</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-M2SL"></canvas>
+        </div>
+        <!-- Yield Curve -->
+        <div class="macro-card skeleton-loading" id="macro-T10Y2Y">
+          <div class="macro-name">Yield Curve (10Y-2Y)</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-T10Y2Y"></canvas>
+        </div>
+        <!-- HY Credit Spread -->
+        <div class="macro-card skeleton-loading" id="macro-BAMLH0A0HYM2">
+          <div class="macro-name">HY Credit Spread</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-BAMLH0A0HYM2"></canvas>
+        </div>
+        <!-- 10Y Treasury -->
+        <div class="macro-card skeleton-loading" id="macro-DGS10">
+          <div class="macro-name">10-Year Treasury</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-DGS10"></canvas>
+        </div>
+        <!-- 2Y Treasury -->
+        <div class="macro-card skeleton-loading" id="macro-DGS2">
+          <div class="macro-name">2-Year Treasury</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-DGS2"></canvas>
+        </div>
+        <!-- DXY -->
+        <div class="macro-card skeleton-loading" id="macro-DTWEXBGS">
+          <div class="macro-name">USD Index (DXY)</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-DTWEXBGS"></canvas>
+        </div>
+        <!-- Gold -->
+        <div class="macro-card skeleton-loading" id="macro-GOLD">
+          <div class="macro-name">Gold Price</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-GOLD"></canvas>
+        </div>
+        <!-- WTI Crude -->
+        <div class="macro-card skeleton-loading" id="macro-WTI">
+          <div class="macro-name">WTI Crude Oil</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-WTI"></canvas>
+        </div>
+        <!-- VIX -->
+        <div class="macro-card skeleton-loading" id="macro-VIX">
+          <div class="macro-name">VIX</div>
+          <div class="macro-value skeleton skeleton-value"></div>
+          <div class="macro-change skeleton skeleton-text w-60 mt-1"></div>
+          <canvas class="macro-sparkline" id="spark-VIX"></canvas>
+        </div>
+      </div>
+
+      <!-- Macro Summary Panel -->
+      <div class="macro-summary-box mt-4" id="macroSummary">
+        <div class="skeleton skeleton-text w-100 mb-2"></div>
+        <div class="skeleton skeleton-text w-80 mb-2"></div>
+        <div class="skeleton skeleton-text w-60"></div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 6: SIMULATE
+    ========================================================= -->
+    <section class="tab-page" id="tab-simulate">
+
+      <div class="inner-tabs mb-3">
+        <button class="inner-tab active" data-inner-tab="montecarlo">Monte Carlo</button>
+        <button class="inner-tab" data-inner-tab="goalplanner">Goal Planner</button>
+        <button class="inner-tab" data-inner-tab="stresstest">Stress Test</button>
+        <button class="inner-tab" data-inner-tab="dca">DCA Calculator</button>
+      </div>
+
+      <!-- Monte Carlo Panel -->
+      <div class="inner-tab-panel active" id="panel-montecarlo">
+        <div class="layout-sidebar-main">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Simulation Parameters</span></div>
+            <div class="flex-col gap-3">
+              <div class="form-group">
+                <label class="form-label">Simulations: <span id="mcSimsVal">1000</span></label>
+                <input type="range" class="form-range" id="mcSims" min="100" max="10000" step="100" value="1000" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Time Horizon: <span id="mcYearsVal">10</span> yrs</label>
+                <input type="range" class="form-range" id="mcYears" min="1" max="30" value="10" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Expected Annual Return: <span id="mcReturnVal">8</span>%</label>
+                <input type="range" class="form-range" id="mcReturn" min="-20" max="50" value="8" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Annual Volatility: <span id="mcVolVal">15</span>%</label>
+                <input type="range" class="form-range" id="mcVol" min="1" max="80" value="15" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Inflation Rate: <span id="mcInflVal">3</span>%</label>
+                <input type="range" class="form-range" id="mcInfl" min="0" max="15" value="3" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Monthly Contribution: $<span id="mcContribVal">500</span></label>
+                <input type="range" class="form-range" id="mcContrib" min="0" max="10000" step="100" value="500" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Starting Value ($)</label>
+                <input type="number" class="form-input mono" id="mcStartValue" placeholder="Auto from portfolio" />
+              </div>
+              <button class="btn btn-primary w-full" id="runMonteCarloBtn">▶ Run Simulation</button>
+            </div>
+          </div>
+          <div>
+            <div class="card mb-3">
+              <div class="card-header"><span class="card-title">Simulation Paths</span></div>
+              <div class="mc-canvas-wrap">
+                <canvas id="mcCanvas" height="280"></canvas>
+              </div>
+              <div class="mc-legend" id="mcLegend">
+                <div class="mc-legend-item"><div class="mc-legend-dot" style="background:#3dbc72"></div>P90 Best</div>
+                <div class="mc-legend-item"><div class="mc-legend-dot" style="background:#5ba8d4"></div>P75</div>
+                <div class="mc-legend-item"><div class="mc-legend-dot" style="background:#f0f6ff"></div>P50 Median</div>
+                <div class="mc-legend-item"><div class="mc-legend-dot" style="background:#d4a03d"></div>P25</div>
+                <div class="mc-legend-item"><div class="mc-legend-dot" style="background:#d44a4a"></div>P10 Worst</div>
+              </div>
+            </div>
+            <div class="grid-3" id="mcResults">
+              <div class="stat-box">
+                <div class="stat-label">Median Outcome</div>
+                <div class="stat-value mono" id="mcMedian">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">P90 Best Case</div>
+                <div class="stat-value mono text-green" id="mcP90">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">P10 Worst Case</div>
+                <div class="stat-value mono text-red" id="mcP10">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Inflation-Adj Median</div>
+                <div class="stat-value mono" id="mcRealMedian">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Prob. of Doubling</div>
+                <div class="stat-value mono text-sky" id="mcDoubleProb">—</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Total Contributed</div>
+                <div class="stat-value mono" id="mcTotalContrib">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Goal Planner Panel -->
+      <div class="inner-tab-panel" id="panel-goalplanner">
+        <div class="layout-sidebar-main">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Goal Parameters</span></div>
+            <div class="flex-col gap-3">
+              <div class="form-group">
+                <label class="form-label">Current Portfolio Value ($)</label>
+                <input type="number" class="form-input mono" id="gpCurrent" placeholder="Auto from portfolio" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Target Amount ($)</label>
+                <input type="number" class="form-input mono" id="gpTarget" placeholder="1,000,000" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Target Year</label>
+                <input type="number" class="form-input mono" id="gpYear" placeholder="2045" min="2026" max="2075" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Expected Annual Return (%)</label>
+                <input type="number" class="form-input mono" id="gpReturn" placeholder="8" step="0.1" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Monthly Contribution ($)</label>
+                <input type="number" class="form-input mono" id="gpContrib" placeholder="500" />
+              </div>
+              <button class="btn btn-primary w-full" id="runGoalBtn">Calculate Goal</button>
+            </div>
+          </div>
+          <div id="goalResults">
+            <div class="empty-state" style="padding:60px 20px;">
+              <div class="empty-state-icon">◷</div>
+              <div class="empty-state-title">Set your goal parameters</div>
+              <div class="empty-state-msg">Enter your target amount and time horizon to see projections</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stress Test Panel -->
+      <div class="inner-tab-panel" id="panel-stresstest">
+        <div class="card mb-3">
+          <div class="card-header"><span class="card-title">Select Scenario</span></div>
+          <div class="stress-scenarios">
+            <button class="scenario-btn active" data-scenario="2008">2008 Financial Crisis</button>
+            <button class="scenario-btn" data-scenario="2020">2020 COVID Crash</button>
+            <button class="scenario-btn" data-scenario="1970s">1970s Stagflation</button>
+            <button class="scenario-btn" data-scenario="dotcom">2000 Dot-Com Bust</button>
+            <button class="scenario-btn" data-scenario="ratespike">Rate Spike +3%</button>
+            <button class="scenario-btn" data-scenario="custom">Custom Scenario</button>
+          </div>
+          <div id="customScenarioInputs" class="hidden">
+            <div class="grid-3 mt-3">
+              <div class="form-group">
+                <label class="form-label">Equities Shock (%)</label>
+                <input type="number" class="form-input mono" id="customEquity" placeholder="-30" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tech Shock (%)</label>
+                <input type="number" class="form-input mono" id="customTech" placeholder="-40" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Bonds Response (%)</label>
+                <input type="number" class="form-input mono" id="customBonds" placeholder="+10" />
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-danger mt-3" id="runStressBtn">⚡ Run Stress Test</button>
+        </div>
+        <div id="stressResults">
+          <div class="empty-state">
+            <div class="empty-state-icon">⚡</div>
+            <div class="empty-state-title">Run a scenario</div>
+            <div class="empty-state-msg">Select a historical crash scenario and click Run to see portfolio impact</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DCA Calculator Panel -->
+      <div class="inner-tab-panel" id="panel-dca">
+        <div class="layout-sidebar-main">
+          <div class="card">
+            <div class="card-header"><span class="card-title">DCA Parameters</span></div>
+            <div class="flex-col gap-3">
+              <div class="form-group">
+                <label class="form-label">Starting Value ($)</label>
+                <input type="number" class="form-input mono" id="dcaStart" placeholder="10000" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Monthly Contribution ($)</label>
+                <input type="number" class="form-input mono" id="dcaContrib" placeholder="500" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Years</label>
+                <input type="number" class="form-input mono" id="dcaYears" placeholder="20" min="1" max="50" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Expected Return (%)</label>
+                <input type="number" class="form-input mono" id="dcaReturn" placeholder="8" step="0.1" />
+              </div>
+              <div class="flex items-center gap-2 mt-1">
+                <input type="checkbox" id="dcaToMC" />
+                <label for="dcaToMC" class="form-label" style="cursor:pointer;">Add to Monte Carlo simulation</label>
+              </div>
+              <button class="btn btn-primary w-full" id="runDcaBtn">Calculate DCA</button>
+            </div>
+          </div>
+          <div>
+            <div class="card mb-3">
+              <div class="card-header"><span class="card-title">Lump Sum vs DCA</span></div>
+              <div class="chart-wrap" style="height:240px;"><canvas id="dcaChart"></canvas></div>
+            </div>
+            <div class="grid-3" id="dcaResults">
+              <div class="stat-box"><div class="stat-label">Final Value</div><div class="stat-value mono" id="dcaFinal">—</div></div>
+              <div class="stat-box"><div class="stat-label">Total Contributed</div><div class="stat-value mono" id="dcaContribTotal">—</div></div>
+              <div class="stat-box"><div class="stat-label">Total Returns</div><div class="stat-value mono text-green" id="dcaTotalReturn">—</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 7: COMPARE
+    ========================================================= -->
+    <section class="tab-page" id="tab-compare">
+
+      <!-- Benchmark Chart -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">Portfolio vs Benchmarks</span>
+          <div class="timeframe-selector" id="benchmarkTF">
+            <button class="tf-btn active" data-tf="1M">1M</button>
+            <button class="tf-btn" data-tf="3M">3M</button>
+            <button class="tf-btn" data-tf="6M">6M</button>
+            <button class="tf-btn" data-tf="YTD">YTD</button>
+            <button class="tf-btn" data-tf="1Y">1Y</button>
+            <button class="tf-btn" data-tf="3Y">3Y</button>
+            <button class="tf-btn" data-tf="5Y">5Y</button>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:300px;"><canvas id="benchmarkChart"></canvas></div>
+        <div class="flex gap-4 mt-3 text-xs text-muted flex-wrap" id="benchmarkLegend">
+          <span style="color:#4a8eff">● Your Portfolio</span>
+          <span style="color:#3dbc72">● SPY (S&amp;P 500)</span>
+          <span style="color:#5ba8d4">● QQQ (Nasdaq)</span>
+          <span style="color:#d4a03d">● DIA (Dow Jones)</span>
+        </div>
+      </div>
+
+      <!-- Comparison Metrics Table -->
+      <div class="card mb-4">
+        <div class="card-header"><span class="card-title">Performance Comparison</span></div>
+        <div class="table-scroll">
+          <table class="data-table" id="compareTable">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Your Portfolio</th>
+                <th>SPY</th>
+                <th>QQQ</th>
+                <th>DIA</th>
+              </tr>
+            </thead>
+            <tbody id="compareBody">
+              <tr><td>Total Return</td><td class="skeleton skeleton-text w-80" colspan="4"></td></tr>
+              <tr><td>Annualized Return</td><td class="skeleton skeleton-text w-80" colspan="4"></td></tr>
+              <tr><td>Volatility (Ann.)</td><td class="skeleton skeleton-text w-80" colspan="4"></td></tr>
+              <tr><td>Sharpe Ratio</td><td class="skeleton skeleton-text w-80" colspan="4"></td></tr>
+              <tr><td>Max Drawdown</td><td class="skeleton skeleton-text w-80" colspan="4"></td></tr>
+              <tr><td>Best Month</td><td class="skeleton skeleton-text w-80" colspan="4"></td></tr>
+              <tr><td>Worst Month</td><td class="skeleton skeleton-text w-80" colspan="4"></td></tr>
+              <tr><td>Beta vs SPY</td><td class="skeleton skeleton-text w-80" colspan="4"></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- What If Calculator -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">What If Calculator</span>
+          <span class="card-action" data-tooltip="Compare what would have happened if you invested in one asset vs another over a selected period">ⓘ Info</span>
+        </div>
+
+        <!-- Pre-loaded comparisons -->
+        <div class="flex gap-2 flex-wrap mb-3" id="whatIfPresets">
+          <button class="preset-chip" data-whatif="NVDA,META,2020">NVDA vs META since 2020</button>
+          <button class="preset-chip" data-whatif="BTC-USD,SPY,2019">BTC vs SPY since 2019</button>
+          <button class="preset-chip" data-whatif="TSLA,F,2019">TSLA vs F since 2019</button>
+        </div>
+
+        <div class="form-row mb-3">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">Asset A</label>
+            <input type="text" class="form-input mono" id="whatIfA" placeholder="NVDA" />
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">Asset B</label>
+            <input type="text" class="form-input mono" id="whatIfB" placeholder="META" />
+          </div>
+          <div class="form-group" style="flex:0.8">
+            <label class="form-label">Start Year</label>
+            <select class="form-input" id="whatIfYear">
+              <option value="2020">2020</option>
+              <option value="2019">2019</option>
+              <option value="2018">2018</option>
+              <option value="2017">2017</option>
+              <option value="2015">2015</option>
+              <option value="2010">2010</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:0 0 auto">
+            <label class="form-label">&nbsp;</label>
+            <button class="btn btn-primary" id="runWhatIfBtn">Compare</button>
+          </div>
+        </div>
+
+        <div id="whatIfContent">
+          <div class="chart-wrap" style="height:260px;"><canvas id="whatIfChart"></canvas></div>
+          <div class="comparison-strip hidden mt-3" id="whatIfComparison">
+            <div class="comparison-box">
+              <div class="comparison-label" id="whatIfLabelA">Asset A</div>
+              <div class="comparison-value mono text-sky" id="whatIfValA">—</div>
+            </div>
+            <div class="comparison-arrow">→</div>
+            <div class="comparison-box">
+              <div class="comparison-label" id="whatIfLabelB">Asset B</div>
+              <div class="comparison-value mono text-green" id="whatIfValB">—</div>
+            </div>
+          </div>
+          <div class="grid-3 mt-3 hidden" id="whatIfStats">
+            <div class="stat-box"><div class="stat-label">Difference $</div><div class="stat-value mono" id="wiDiffDollar">—</div></div>
+            <div class="stat-box"><div class="stat-label">Difference %</div><div class="stat-value mono" id="wiDiffPct">—</div></div>
+            <div class="stat-box"><div class="stat-label">Ann. Return A vs B</div><div class="stat-value mono" id="wiAnnReturn">—</div></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB: OPTIONS & DERIVATIVES
+    ========================================================= -->
+    <section class="tab-page" id="tab-options">
+
+      <!-- Options Pricing Header -->
+      <div class="grid-2 mb-4">
+
+        <!-- LEFT: Black-Scholes Pricer -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Black-Scholes Pricer</span>
+          </div>
+
+          <div class="form-row mb-2">
+            <div class="form-group" style="flex:1">
+              <label class="form-label">Spot Price (S)</label>
+              <input type="number" class="form-input mono" id="optS" value="100" step="0.01" />
+            </div>
+            <div class="form-group" style="flex:1">
+              <label class="form-label">Strike (K)</label>
+              <input type="number" class="form-input mono" id="optK" value="100" step="0.01" />
+            </div>
+          </div>
+          <div class="form-row mb-2">
+            <div class="form-group" style="flex:1">
+              <label class="form-label">Time to Expiry (yrs)</label>
+              <input type="number" class="form-input mono" id="optT" value="1.0" step="0.01" min="0.001" />
+            </div>
+            <div class="form-group" style="flex:1">
+              <label class="form-label">Risk-Free Rate</label>
+              <input type="number" class="form-input mono" id="optR" value="0.05" step="0.001" />
+            </div>
+          </div>
+          <div class="form-row mb-3">
+            <div class="form-group" style="flex:1">
+              <label class="form-label">Volatility (σ)</label>
+              <input type="number" class="form-input mono" id="optSigma" value="0.20" step="0.01" min="0.001" />
+            </div>
+            <div class="form-group" style="flex:1">
+              <label class="form-label">Option Type</label>
+              <select class="form-input" id="optType">
+                <option value="call">Call</option>
+                <option value="put">Put</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="optPriceBtn" style="width:100%;">Price Option</button>
+        </div>
+
+        <!-- RIGHT: Results -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Pricing Result</span>
+            <span class="text-xs text-muted" id="optParityCheck"></span>
+          </div>
+
+          <div class="grid-2 mb-3">
+            <div class="stat-box">
+              <div class="stat-label">Call Price</div>
+              <div class="stat-value mono" id="optCallPrice">—</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Put Price</div>
+              <div class="stat-value mono" id="optPutPrice">—</div>
+            </div>
+          </div>
+
+          <!-- Greeks Table -->
+          <div class="card-header" style="padding:0 0 8px 0;border:0;">
+            <span class="card-title" style="font-size:0.85rem;">Greeks</span>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" id="greeksTable">
+              <thead>
+                <tr><th>Greek</th><th>Value</th><th>Interpretation</th></tr>
+              </thead>
+              <tbody id="greeksBody">
+                <tr><td colspan="3" class="text-muted text-center">Price an option to see Greeks</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Implied Volatility Solver -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">Implied Volatility Solver</span>
+        </div>
+        <div class="form-row mb-2">
+          <div class="form-group" style="flex:1">
+            <label class="form-label">Market Price</label>
+            <input type="number" class="form-input mono" id="ivMarketPrice" placeholder="e.g. 10.45" step="0.01" />
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">Spot (S)</label>
+            <input type="number" class="form-input mono" id="ivS" value="100" step="0.01" />
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">Strike (K)</label>
+            <input type="number" class="form-input mono" id="ivK" value="100" step="0.01" />
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">T (yrs)</label>
+            <input type="number" class="form-input mono" id="ivT" value="1.0" step="0.01" />
+          </div>
+          <div class="form-group" style="flex:0.8">
+            <label class="form-label">Type</label>
+            <select class="form-input" id="ivType">
+              <option value="call">Call</option>
+              <option value="put">Put</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:0 0 auto;justify-content:flex-end;">
+            <label class="form-label">&nbsp;</label>
+            <button class="btn btn-primary" id="ivSolveBtn">Solve IV</button>
+          </div>
+        </div>
+        <div class="grid-3 hidden" id="ivResults">
+          <div class="stat-box"><div class="stat-label">Implied Vol</div><div class="stat-value mono" id="ivResult">—</div></div>
+          <div class="stat-box"><div class="stat-label">Theo Price</div><div class="stat-value mono" id="ivTheo">—</div></div>
+          <div class="stat-box"><div class="stat-label">Price Diff</div><div class="stat-value mono" id="ivDiff">—</div></div>
+        </div>
+      </div>
+
+      <!-- Payoff Diagram -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">Payoff at Expiry</span>
+          <div class="flex gap-2">
+            <select class="form-input" id="payoffPosition" style="width:auto;padding:4px 8px;">
+              <option value="long">Long</option>
+              <option value="short">Short</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:300px;">
+          <canvas id="payoffChart"></canvas>
+        </div>
+        <div class="grid-3 mt-3 hidden" id="payoffStats">
+          <div class="stat-box"><div class="stat-label">Premium</div><div class="stat-value mono" id="payoffPremium">—</div></div>
+          <div class="stat-box"><div class="stat-label">Breakeven</div><div class="stat-value mono" id="payoffBreakeven">—</div></div>
+          <div class="stat-box"><div class="stat-label">Max Loss</div><div class="stat-value mono" id="payoffMaxLoss">—</div></div>
+        </div>
+      </div>
+
+      <!-- Strategy Builder -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <span class="card-title">Strategy Builder</span>
+        </div>
+        <div class="form-row mb-3">
+          <div class="form-group" style="flex:1.5">
+            <label class="form-label">Strategy</label>
+            <select class="form-input" id="strategySelect">
+              <option value="straddle">Long Straddle</option>
+              <option value="bull_call_spread">Bull Call Spread</option>
+              <option value="iron_condor">Iron Condor</option>
+              <option value="protective_put">Protective Put</option>
+              <option value="covered_call">Covered Call</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">Spot (S)</label>
+            <input type="number" class="form-input mono" id="stratS" value="100" step="0.01" />
+          </div>
+          <div class="form-group" style="flex:0.8">
+            <label class="form-label">Vol (σ)</label>
+            <input type="number" class="form-input mono" id="stratSigma" value="0.20" step="0.01" />
+          </div>
+          <div class="form-group" style="flex:0.8">
+            <label class="form-label">T (yrs)</label>
+            <input type="number" class="form-input mono" id="stratT" value="0.5" step="0.01" />
+          </div>
+          <div class="form-group" style="flex:0 0 auto;justify-content:flex-end;">
+            <label class="form-label">&nbsp;</label>
+            <button class="btn btn-primary" id="stratBtn">Analyze</button>
+          </div>
+        </div>
+        <!-- Dynamic strike inputs -->
+        <div class="form-row mb-3 hidden" id="stratStrikesRow">
+          <div class="form-group" style="flex:1" id="stratK1Group">
+            <label class="form-label" id="stratK1Label">Strike (K)</label>
+            <input type="number" class="form-input mono" id="stratK1" step="0.01" />
+          </div>
+          <div class="form-group hidden" style="flex:1" id="stratK2Group">
+            <label class="form-label">K2</label>
+            <input type="number" class="form-input mono" id="stratK2" step="0.01" />
+          </div>
+          <div class="form-group hidden" style="flex:1" id="stratK3Group">
+            <label class="form-label">K3</label>
+            <input type="number" class="form-input mono" id="stratK3" step="0.01" />
+          </div>
+          <div class="form-group hidden" style="flex:1" id="stratK4Group">
+            <label class="form-label">K4</label>
+            <input type="number" class="form-input mono" id="stratK4" step="0.01" />
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:300px;">
+          <canvas id="strategyChart"></canvas>
+        </div>
+        <div class="grid-3 mt-3 hidden" id="stratStats">
+          <div class="stat-box"><div class="stat-label" id="stratStat1Label">Cost</div><div class="stat-value mono" id="stratStat1">—</div></div>
+          <div class="stat-box"><div class="stat-label" id="stratStat2Label">Max Profit</div><div class="stat-value mono" id="stratStat2">—</div></div>
+          <div class="stat-box"><div class="stat-label" id="stratStat3Label">Max Loss</div><div class="stat-value mono" id="stratStat3">—</div></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================
+         TAB 8: WATCHLIST
+    ========================================================= -->
+    <section class="tab-page" id="tab-watchlist">
+
+      <!-- Add to Watchlist -->
+      <div class="watchlist-add-bar">
+        <input type="text" class="form-input mono" id="watchlistInput" placeholder="Add ticker — MSFT, AMZN, ETH-USD..." style="max-width:300px;" />
+        <button class="btn btn-primary" id="addWatchlistBtn">+ Add</button>
+        <div class="flex gap-2 ml-auto items-center">
+          <span class="text-xs text-muted">Sort by:</span>
+          <select class="form-input" id="watchlistSort" style="width:auto;padding:6px 10px;">
+            <option value="name">Name</option>
+            <option value="price">Price</option>
+            <option value="change">Day Change</option>
+            <option value="perf52w">52W Perf</option>
+            <option value="mktcap">Market Cap</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Watchlist Table -->
+      <div class="card">
+        <div class="table-scroll">
+          <table class="data-table" id="watchlistTable">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Live Price</th>
+                <th>Day Change</th>
+                <th>Day Change %</th>
+                <th>52W High</th>
+                <th>52W Low</th>
+                <th>52W Performance</th>
+                <th>Market Cap</th>
+                <th>Latest News</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="watchlistBody">
+              <tr>
+                <td colspan="11">
+                  <div class="watchlist-empty">
+                    <div class="watchlist-empty-icon">◷</div>
+                    <div class="empty-state-title">Your watchlist is empty</div>
+                    <div class="empty-state-msg">Add tickers above to track their performance</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- PROJECT TITAN TABS -->
+    <section class="tab-page" id="tab-technical">
+      <div id="technicalContent"><div class="text-center text-muted" style="padding:60px">Select this tab to load Technical Analysis</div></div>
+    </section>
+    <section class="tab-page" id="tab-nervemap">
+      <div id="nervemapContent"></div>
+    </section>
+    <section class="tab-page" id="tab-rebalance">
+      <div id="titanRebalanceContent"></div>
+    </section>
+    <section class="tab-page" id="tab-factors">
+      <div id="factorsContent"></div>
+    </section>
+    <section class="tab-page" id="tab-attribution">
+      <div id="attributionContent"></div>
+    </section>
+    <section class="tab-page" id="tab-regime">
+      <div id="regimeContent"></div>
+    </section>
+    <section class="tab-page" id="tab-screener">
+      <div id="screenerContent"></div>
+    </section>
+    <section class="tab-page" id="tab-earnings">
+      <div id="earningsContent"></div>
+    </section>
+    <section class="tab-page" id="tab-bonds">
+      <div id="bondsContent"></div>
+    </section>
+    <section class="tab-page" id="tab-pairs">
+      <div id="pairsContent"></div>
+    </section>
+    <section class="tab-page" id="tab-backtest">
+      <div id="backtestContent"></div>
+    </section>
+
+  </main><!-- /app-main -->
+</div><!-- /app-shell -->
+
+<!-- App JS -->
+<script src="app.js"></script>
+<script src="simulate-patch.js"></script>
+<script src="titan.js"></script>
+</body>
+</html>

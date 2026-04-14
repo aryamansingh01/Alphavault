@@ -1,0 +1,61 @@
+{
+  "version": 2,
+  "name": "alphavault",
+
+  "builds": [
+    { "src": "api/quote.py",               "use": "@vercel/python" },
+    { "src": "api/news.py",                "use": "@vercel/python" },
+    { "src": "api/research.py",            "use": "@vercel/python" },
+    { "src": "api/etf.py",                 "use": "@vercel/python" },
+    { "src": "api/macro.py",               "use": "@vercel/python" },
+    { "src": "api/dividends.py",           "use": "@vercel/python" },
+    { "src": "api/portfolio_analytics.py", "use": "@vercel/python" },
+    { "src": "api/correlation.py",         "use": "@vercel/python" },
+    { "src": "api/risk.py",                "use": "@vercel/python" },
+    { "src": "api/montecarlo.py",          "use": "@vercel/python" },
+    { "src": "api/efficient_frontier.py",  "use": "@vercel/python" },
+    { "src": "api/history.py",             "use": "@vercel/python" },
+    { "src": "index.html",     "use": "@vercel/static" },
+    { "src": "style.css",      "use": "@vercel/static" },
+    { "src": "app.js",         "use": "@vercel/static" },
+    { "src": "simulate-patch.js", "use": "@vercel/static" }
+  ],
+
+  "routes": [
+    { "src": "/api/quote",               "dest": "/api/quote.py"               },
+    { "src": "/api/news",                "dest": "/api/news.py"                },
+    { "src": "/api/research",            "dest": "/api/research.py"            },
+    { "src": "/api/insider",             "dest": "/api/research.py"            },
+    { "src": "/api/analyst",             "dest": "/api/research.py"            },
+    { "src": "/api/etf",                 "dest": "/api/etf.py"                 },
+    { "src": "/api/etf_holdings",        "dest": "/api/etf.py"                 },
+    { "src": "/api/etf_sectors",         "dest": "/api/etf.py"                 },
+    { "src": "/api/macro",               "dest": "/api/macro.py"               },
+    { "src": "/api/dividends",           "dest": "/api/dividends.py"           },
+    { "src": "/api/portfolio_analytics", "dest": "/api/portfolio_analytics.py" },
+    { "src": "/api/correlation",         "dest": "/api/correlation.py"         },
+    { "src": "/api/risk",                "dest": "/api/risk.py"                },
+    { "src": "/api/drawdown",            "dest": "/api/risk.py"                },
+    { "src": "/api/stress_test",         "dest": "/api/risk.py"                },
+    { "src": "/api/montecarlo",          "dest": "/api/montecarlo.py"          },
+    { "src": "/api/efficient_frontier",  "dest": "/api/efficient_frontier.py"  },
+    { "src": "/api/history",             "dest": "/api/history.py"             },
+    { "src": "/api/benchmark",           "dest": "/api/history.py"             },
+    { "src": "/app.js",                  "dest": "/app.js"                     },
+    { "src": "/style.css",               "dest": "/style.css"                  },
+    { "src": "/simulate-patch.js",       "dest": "/simulate-patch.js"          },
+    { "src": "/(.*)",                    "dest": "/index.html"                 }
+  ],
+
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin",  "value": "*"                  },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type"       },
+        { "key": "Cache-Control",                "value": "s-maxage=30, stale-while-revalidate=60" }
+      ]
+    }
+  ]
+}

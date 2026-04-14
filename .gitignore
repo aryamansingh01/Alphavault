@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env
+
+# OS
+.DS_Store
+
+# IDE
+.claude/
+.pytest_cache/
+
+# Data
+data/
